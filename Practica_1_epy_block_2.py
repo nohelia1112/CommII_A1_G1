@@ -6,8 +6,6 @@ to get ports and parameters of your block. The arguments to __init__  will
 be the parameters. All of them are required to have default values!
 """
 
-# Activate your venv first, then install
-
 import numpy as np
 from gnuradio import gr
 
@@ -17,17 +15,22 @@ class blk(gr.sync_block):
 	def __init__(self): # only default arguments here
 		gr.sync_block.__init__(
 			self,
-			name = 'e_Acum', # will show up in GRC
+			name = 'e_Diff', # will show up in GRC
 			in_sig = [np.float32],
 			out_sig = [np.float32]
 		)
-		self.total = 0.0
+		self.acum_anterior = 0
+		
 
 	def work(self, input_items, output_items):
 		x = input_items[0] # Senial de entrada .
-		y0 = output_items[0] # Senial acumulada
+		y0 = output_items[0] # Senial acumulada diferencial
 
-		y0[:] = np.cumsum(x)
-		# self.total = y0[-1]
+		N = len(x)
+
+		diff = np.diff(np.concatenate([self.prev_value], x))
+		y0[:] = diff
+
+		self.prev_value = x[-1]
 
 		return len(y0)
